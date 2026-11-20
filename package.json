@@ -4,7 +4,6 @@
   "private": true,
   "description": "DocuMind — Chat with your documents. Production-style RAG with Next.js, pgvector retrieval and streaming, cited answers.",
   "author": "Negar Shojaei",
-  "license": "MIT",
   "engines": {
     "node": ">=20"
   },
