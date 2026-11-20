@@ -5,7 +5,22 @@
 Upload a PDF or Markdown file, and DocuMind chunks it, embeds it into PostgreSQL via pgvector, and answers your questions with grounded, streaming responses — every claim backed by a numbered citation you can inspect in a Sources panel.
 
 ![CI](https://github.com/negar73/documind/actions/workflows/ci.yml/badge.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## Demo
+
+No hosted demo yet — DocuMind needs a Postgres with pgvector and an LLM endpoint behind it. Locally it is a five-minute setup:
+
+```bash
+docker compose up -d                 # Postgres 16 with pgvector preinstalled
+npm install
+cp .env.example .env                 # set OPENAI_API_KEY — any OpenAI-compatible endpoint works
+npm run db:push && npm run db:seed   # schema + a sample document
+npm run dev                          # -> http://localhost:3000
+```
+
+Start at the library page, then open **/chat** and ask about the seeded document — or upload a PDF or Markdown file of your own. Answers stream in with numbered citations; open the Sources panel and every claim links back to the exact chunk it was grounded in.
 
 ---
 
@@ -270,9 +285,3 @@ documind/
 - [ ] **Auth + workspaces** — multi-tenant document libraries with per-user scoping.
 - [ ] **Citation highlighting in a source viewer** — click `[1]` to open the source chunk with the quoted span highlighted.
 - [ ] **Deploy to Vercel + Neon pgvector** — and move background ingestion from fire-and-forget to a queue (the swap is isolated to a single call site in `src/lib/ingest.ts`).
-
----
-
-## License
-
-Released under the [MIT License](LICENSE) — © 2025 Negar Shojaei. Contributions are welcome: open an issue or a PR.
