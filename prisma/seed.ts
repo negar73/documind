@@ -1,5 +1,5 @@
 /**
- * Seed script — inserts one READY sample document ("SyncScribe product FAQ")
+ * Seed script — inserts one READY sample document ("DocuMind product FAQ")
  * so the UI can be explored immediately after `npm run db:push`, even before
  * an embedding endpoint is configured.
  *
@@ -24,40 +24,38 @@ import { insertChunk } from '../src/lib/vector-store';
 /** Must match the vector column dimension in prisma/schema.prisma. */
 const EMBEDDING_DIM = Number(process.env.EMBEDDING_DIM ?? 1536);
 
-const FILENAME = 'syncscribe-faq.md';
+const FILENAME = 'documind-faq.md';
 
-const FAQ_TEXT = `# SyncScribe product FAQ
+const FAQ_TEXT = `# DocuMind product FAQ
 
-## What is SyncScribe?
+## What is DocuMind?
 
-SyncScribe is a real-time collaborative note-taking app for distributed teams. Notes are stored as Markdown, synchronized across devices within milliseconds, and remain fully editable offline — changes made without a connection are queued locally and merged automatically the next time you come online. Every workspace is end-to-end encrypted: notes are encrypted on your device before they ever reach our servers, so even SyncScribe staff cannot read their contents.
+DocuMind is a self-hosted research assistant that turns a folder of documents into a knowledge base you can chat with. Upload PDFs, Markdown or text files, and every question is answered strictly from the retrieved passages — each claim carries a numbered citation like [1] that points back to the exact chunk it came from, and when the documents do not contain the answer, the model says so instead of inventing one. Documents, chunks, vectors and chat history all live in your own Postgres database, so nothing leaves your infrastructure except the requests to the embedding and language model endpoints you configure yourself.
 
-SyncScribe runs on the web, on macOS and Windows desktop, and on iOS and Android. All platforms share the same rendering engine, so a note looks identical everywhere. Teams typically use SyncScribe for meeting notes, engineering runbooks, product specs, and personal knowledge bases.
+DocuMind runs entirely on your machine or your own server. The Next.js app talks to Postgres with pgvector for retrieval, and the embedding and chat models are plain OpenAI-compatible HTTP endpoints — swap in Ollama and the whole pipeline stays local, which is exactly what teams with confidential material usually need.
 
 ## Key features
 
-- Real-time co-editing with per-character presence indicators and comment threads.
-- Full offline support with automatic conflict resolution; conflicting snapshots are kept for 90 days so nothing is ever silently overwritten.
-- Version history: every note keeps a timeline of changes for 90 days on Pro plans and one year on Team plans, and any version can be restored or forked into a new note.
-- Shared workspaces with up to 50 members per workspace, granular per-note permissions, and guest links that expire automatically.
-- Integrations: push notes to Slack channels, attach GitHub issues and pull requests, and export any workspace through the CLI (npx syncscribe export) as a zip of Markdown files.
-- Global command palette (Cmd/Ctrl+K) for navigation, note creation and quick actions.
+- Ingestion pipeline with smart chunking and overlap, so long documents stay coherent across chunk boundaries.
+- Batched embeddings stored as pgvector columns — retrieval is a single ORDER BY embedding <=> query LIMIT k inside Postgres, with no separate vector database to run.
+- Grounded, streaming answers rendered token by token, with the Sources panel populated before the first token is even shown.
+- A citation list next to every answer that maps each numbered reference back to the exact passage and its similarity score.
+- Works with any OpenAI-compatible endpoint, including a fully local setup through Ollama, so confidential material never leaves the machine.
+- Chat history persisted per document, so follow-up questions keep their context across reloads.
 
-## Pricing
+## Data and privacy
 
-SyncScribe has three plans. The Free plan includes 3 notebooks, syncing across 2 devices, and 7 days of version history — free forever, no credit card required. The Pro plan costs €8 per month per user (or €80 per year — two months free) and unlocks unlimited notebooks, unlimited devices, 90-day version history and all integrations. The Team plan costs €14 per user per month and adds SSO/SAML, an audit log, admin roles, priority support and one-year version history.
-
-Students and educators receive a 40% discount on the Pro plan after verifying their academic email address. All paid plans can be cancelled at any time; accounts then drop to the Free plan at the end of the billing period and no data is deleted.
+DocuMind is built for material you would rather keep in-house. Uploaded files, their chunks, the embedding vectors and the conversation transcripts are ordinary rows in your own database, and deleting a document cascades to its chunks, vectors and messages. For regulated environments, point the embedding and chat base-URL environment variables at an on-premise OpenAI-compatible gateway or a local Ollama instance — the application code contains no hardcoded cloud calls. The bundled sample document ships with deterministic pseudo-random vectors on purpose, so there is no real content to leak while you explore the UI.
 
 ## Troubleshooting
 
-My notes are not syncing — what should I do? First, check the sync status icon in the bottom-right corner. If it shows a yellow dot, your local queue is waiting for a connection; changes retry automatically every 30 seconds. If it shows a red dot, sign out and sign back in, then run "Reset sync cache" from Settings → Advanced; this re-downloads your workspace without losing local changes.
+My document is stuck in PROCESSING — what should I do? Check that the embedding endpoint environment variables are set and reachable; ingestion pushes chunks through that endpoint in batches and marks the document READY only once every batch succeeds. The document panel shows the failing batch id, and you can retry ingestion from the document menu without re-uploading the file.
 
-What happens when two people edit the same paragraph offline? SyncScribe resolves conflicts with a last-writer-wins strategy at the paragraph level, and the losing version is preserved as a snapshot in the note's version history, so conflicting work can always be recovered manually.
+Why do answers look unrelated to my question? Retrieval orders chunks by cosine similarity, and the seeded sample document uses pseudo-random vectors by design — every pair scores around 0.5, so the ordering is meaningless until you ingest real content. Upload one of your own documents and the citation panel starts pointing at the passages you would expect.
 
-How do I export everything? Run npx syncscribe export --workspace <name> from the CLI, or use Settings → Export to download a zip archive of Markdown files with attachments. Exports include full version history when performed by workspace admins.
+Can I chat in languages other than English? Yes. Chunking splits on paragraph boundaries regardless of script, retrieval is language-agnostic, and the model answers in the language of your question. Citations stay numeric, so the Sources panel behaves the same way in every language.
 
-Still stuck? Email support@syncscribe.app — Team plans get a response within one business day.`;
+Still stuck? Email support@documind.app — include the document id and the last ten lines of the server log, and you will get a response within one business day.`;
 
 /**
  * Deterministic PRNG (mulberry32) → normalized pseudo-random unit vector.
@@ -86,7 +84,7 @@ async function main() {
 
   const document = await db.document.create({
     data: {
-      title: 'SyncScribe product FAQ',
+      title: 'DocuMind product FAQ',
       filename: FILENAME,
       mimeType: 'text/markdown',
       sizeBytes: Buffer.byteLength(FAQ_TEXT, 'utf-8'),

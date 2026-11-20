@@ -139,7 +139,7 @@ npm run typecheck     # tsc --noEmit
 npm run db:generate   # regenerate the Prisma client after schema edits
 ```
 
->**Note on the seed:** `npm run db:seed` inserts one `READY` sample document ("SyncScribe product FAQ") so the UI can be explored immediately — even before an API key is configured. Its chunks use deterministic *pseudo-random* vectors, so retrieval ordering over the seed is meaningless until you upload real documents through the app.
+>**Note on the seed:** `npm run db:seed` inserts one `READY` sample document ("DocuMind product FAQ") so the UI can be explored immediately — even before an API key is configured. Its chunks use deterministic *pseudo-random* vectors, so retrieval ordering over the seed is meaningless until you upload real documents through the app.
 >
 >**Note on the API key:** `OPENAI_API_KEY` is optional at boot — the library stays browsable without it. Every code path that needs to embed or generate calls `requireOpenAIConfig()` and fails with a descriptive message instead of crashing at startup.
 
