@@ -1,0 +1,77 @@
+// DocuMind — Prisma schema (PostgreSQL + pgvector)
+//
+// Two things to know about this schema:
+//
+// 1. `postgresqlExtensions` + `extensions = [vector]` make `prisma db push`
+//    run `CREATE EXTENSION IF NOT EXISTS vector` for us, so a plain
+//    pgvector/pgvector:pg16 container is all you need.
+//
+// 2. Prisma has no first-class type for pgvector columns, so `embedding` is
+//    declared `Unsupported("vector(1536)")`. Unsupported columns:
+//      - are invisible to the generated client (you cannot read/write them
+//        through `prisma.documentChunk.create/update/findMany`),
+//      - must be written and read with `$executeRaw` / `$queryRaw`.
+//    That is intentional here — see src/lib/vector-store.ts, which owns all
+//    raw SQL access and documents the `<=>` cosine-distance operator.
+//
+// ⚠ If you change EMBEDDING_DIM (e.g. 768 for Ollama's nomic-embed-text),
+//   update the vector dimension below to match, then run `npm run db:push`.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  title      String
+  filename   String
+  mimeType   String
+  sizeBytes  Int
+  status     DocumentStatus @default(PENDING)
+  error      String?
+  chunkCount Int            @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  chunks   DocumentChunk[]
+  messages ChatMessage[]
+}
+
+model DocumentChunk {
+  id         String                       @id @default(cuid())
+  documentId String
+  idx        Int
+  content    String
+  // vector(1536) matches the default EMBEDDING_DIM of text-embedding-3-small.
+  embedding  Unsupported("vector(1536)")?
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+model ChatMessage {
+  id          String    @id @default(cuid())
+  documentId  String?
+  role        String
+  content     String
+  // JSON-encoded CitationSource[] for assistant messages (null for user turns).
+  sourcesJson String?
+  createdAt   DateTime  @default(now())
+
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}

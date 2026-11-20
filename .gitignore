@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Environment files (never commit secrets — .env.example is the template)
+.env
+.env.local
+.env.*.local
+
+# Logs & misc
+*.log
+.DS_Store
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Editor directories
+.idea/
+.vscode/
