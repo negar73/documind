@@ -4,15 +4,12 @@
 
 Upload a PDF or Markdown file, and DocuMind chunks it, embeds it into PostgreSQL via pgvector, and answers your questions with grounded, streaming responses — every claim backed by a numbered citation you can inspect in a Sources panel.
 
-![CI](https://github.com/negar-shojaei/documind/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/negar73/documind/actions/workflows/ci.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 ---
 
-## ✨ Features
+## Features
 
 - **Document upload** — drag & drop `.pdf`, `.md` / `.markdown` or `.txt` files (up to 5 MB), validated on both the client and the server.
 - **Recursive chunking with overlap** — a character splitter tries the most semantic separators first (paragraphs → lines → sentences → words), then merges pieces into ~`CHUNK_SIZE` chunks and carries a word-boundary-aligned tail of `CHUNK_OVERLAP` characters into the next chunk, so ideas that straddle a boundary stay retrievable.
@@ -31,7 +28,7 @@ Upload a PDF or Markdown file, and DocuMind chunks it, embeds it into PostgreSQL
 
 ---
 
-## 🧠 How RAG works here
+## How RAG works here
 
 ```
 ┌────────┐    ┌─────────────────────┐    ┌──────────────┐    ┌────────────────────┐
@@ -74,7 +71,7 @@ Upload a PDF or Markdown file, and DocuMind chunks it, embeds it into PostgreSQL
 
 ---
 
-## 🧰 Tech stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
@@ -92,7 +89,7 @@ Upload a PDF or Markdown file, and DocuMind chunks it, embeds it into PostgreSQL
 
 ---
 
-## 🚀 Getting started
+## Getting started
 
 **Prerequisites:** Node.js ≥ 20, Docker.
 
@@ -127,9 +124,9 @@ npm run typecheck     # tsc --noEmit
 npm run db:generate   # regenerate the Prisma client after schema edits
 ```
 
-> **Note on the seed:** `npm run db:seed` inserts one `READY` sample document ("SyncScribe product FAQ") so the UI can be explored immediately — even before an API key is configured. Its chunks use deterministic *pseudo-random* vectors, so retrieval ordering over the seed is meaningless until you upload real documents through the app.
+>**Note on the seed:** `npm run db:seed` inserts one `READY` sample document ("SyncScribe product FAQ") so the UI can be explored immediately — even before an API key is configured. Its chunks use deterministic *pseudo-random* vectors, so retrieval ordering over the seed is meaningless until you upload real documents through the app.
 >
-> **Note on the API key:** `OPENAI_API_KEY` is optional at boot — the library stays browsable without it. Every code path that needs to embed or generate calls `requireOpenAIConfig()` and fails with a descriptive message instead of crashing at startup.
+>**Note on the API key:** `OPENAI_API_KEY` is optional at boot — the library stays browsable without it. Every code path that needs to embed or generate calls `requireOpenAIConfig()` and fails with a descriptive message instead of crashing at startup.
 
 For a production image:
 
@@ -140,7 +137,7 @@ docker run --rm -p 3000:3000 --env-file .env documind
 
 ---
 
-## 🔌 Using 100% local models with Ollama
+## Using 100% local models with Ollama
 
 DocuMind only assumes an OpenAI-compatible HTTP API, so it runs fully offline with [Ollama](https://ollama.com):
 
@@ -164,17 +161,17 @@ EMBEDDING_DIM="768"
 
 `OPENAI_API_KEY` can be any non-empty placeholder (e.g. `"ollama"`) — the local server ignores it, but the config check requires it to be set.
 
-> ⚠️ **Important — the vector dimension must match.** `nomic-embed-text` produces 768-dimensional vectors. Update the column in `prisma/schema.prisma`:
+> **Important — the vector dimension must match.** `nomic-embed-text` produces 768-dimensional vectors. Update the column in `prisma/schema.prisma`:
 >
-> ```prisma
-> embedding Unsupported("vector(768)")?
-> ```
+>```prisma
+>embedding Unsupported("vector(768)")?
+>```
 >
-> then run `npm run db:push` again. Documents ingested with the old dimension must be re-uploaded, since their vectors are no longer comparable.
+>then run `npm run db:push` again. Documents ingested with the old dimension must be re-uploaded, since their vectors are no longer comparable.
 
 ---
 
-## 🔐 Environment variables
+## Environment variables
 
 All settings live in `.env` (template: `.env.example`) and are validated with Zod at first import — a bad config fails fast with a readable message.
 
@@ -192,7 +189,7 @@ All settings live in `.env` (template: `.env.example`) and are validated with Zo
 
 ---
 
-## 📁 Project structure
+## Project structure
 
 ```
 documind/
@@ -264,7 +261,7 @@ documind/
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] **Hybrid search (BM25 + vector, fused with RRF)** — combine lexical and semantic rankings with Reciprocal Rank Fusion for better recall on exact terms, names and error codes.
 - [ ] **Reranking** — a cross-encoder reranking pass over the top-k candidates before building the prompt.
@@ -276,6 +273,6 @@ documind/
 
 ---
 
-## 📄 License
+## License
 
 Released under the [MIT License](LICENSE) — © 2025 Negar Shojaei. Contributions are welcome: open an issue or a PR.
